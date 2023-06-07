@@ -36,118 +36,127 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_float(
     'learning_rate', 0.3,
+    # 初始化学习率
     'Initial learning rate per batch size of 256.')
 
 flags.DEFINE_enum(
     'learning_rate_scaling', 'linear', ['linear', 'sqrt'],
+    # 选择缩小学习率的方式
     'How to scale the learning rate as a function of batch size.')
 
 flags.DEFINE_float(
     'warmup_epochs', 10,
+    # 热身训练的轮数
+    # warmup 通常在训练开始的几个 epoch 或迭代中使用较小的
+    # 学习率，并逐渐增加学习率到预定的最大值。这样可以使模型
+    # 在初始阶段更加稳定地学习，并逐渐适应训练数据的特征。通
+    # 过逐渐增加学习率，模型可以在 warmup 阶段更快地收敛，并
+    # 且在后续的训练阶段可以更好地利用更高的学习率进行参数调整。
     'Number of epochs of warmup.')
-
+# 权重衰减量
 flags.DEFINE_float('weight_decay', 1e-6, 'Amount of weight decay to use.')
-
+# 批正则化衰减参数
 flags.DEFINE_float(
     'batch_norm_decay', 0.9,
     'Batch norm decay parameter.')
-
+# 训练中的batch大小
 flags.DEFINE_integer(
     'train_batch_size', 512,
     'Batch size for training.')
-
+# 对于训练划分数据
 flags.DEFINE_string(
     'train_split', 'train',
     'Split for training.')
-
+# 要训练的轮数
 flags.DEFINE_integer(
     'train_epochs', 100,
     'Number of epochs to train for.')
-
+# 训练的步数
 flags.DEFINE_integer(
     'train_steps', 0,
     'Number of steps to train for. If provided, overrides train_epochs.')
-
+# 验证的步数
 flags.DEFINE_integer(
     'eval_steps', 0,
     'Number of steps to eval for. If not provided, evals over entire dataset.')
-
+# 验证的batch大小
 flags.DEFINE_integer(
     'eval_batch_size', 256,
     'Batch size for eval.')
-
+# 在检查点之间的轮数
 flags.DEFINE_integer(
     'checkpoint_epochs', 1,
     'Number of epochs between checkpoints/summaries.')
-
+# 检查点之间的步数
 flags.DEFINE_integer(
     'checkpoint_steps', 0,
     'Number of steps between checkpoints/summaries. If provided, overrides '
     'checkpoint_epochs.')
-
+# 验证的划分
 flags.DEFINE_string(
     'eval_split', 'validation',
     'Split for evaluation.')
-
+# 数据集的名字（TF自动下载）
 flags.DEFINE_string(
     'dataset', 'imagenet2012',
     'Name of a dataset.')
-
+# 是否将整个数据集存入内存中：一般为否
 flags.DEFINE_bool(
     'cache_dataset', False,
     'Whether to cache the entire dataset in memory. If the dataset is '
     'ImageNet, this is a very bad idea, but for smaller datasets it can '
     'improve performance.')
-
+# 是执行训练还是验证
 flags.DEFINE_enum(
     'mode', 'train', ['train', 'eval', 'train_then_eval'],
     'Whether to perform training or evaluation.')
-
+# 选择训练模式：预训练 微调
 flags.DEFINE_enum(
     'train_mode', 'pretrain', ['pretrain', 'finetune'],
     'The train mode controls different objectives and trainable components.')
-
+# 在预训练的时候是否进行微调监督头的操作
+# 监督头：指的是模型的最后几层或一层
 flags.DEFINE_bool('lineareval_while_pretraining', True,
                   'Whether to finetune supervised head while pretraining.')
-
+# 如果微调时的检查点不存在，那么从给定的检查点加载以进行微调操作
 flags.DEFINE_string(
     'checkpoint', None,
     'Loading from the given checkpoint for fine-tuning if a finetuning '
     'checkpoint does not already exist in model_dir.')
-
+# 如果为真，在监督学习的输出层进行0初始化
 flags.DEFINE_bool(
     'zero_init_logits_layer', False,
     'If True, zero initialize layers after avg_pool for supervised learning.')
-
+#要进行微调的块所在的层
 flags.DEFINE_integer(
     'fine_tune_after_block', -1,
     'The layers after which block that we will fine-tune. -1 means fine-tuning '
     'everything. 0 means fine-tuning after stem block. 4 means fine-tuning '
     'just the linear head.')
-
+# 
 flags.DEFINE_string(
     'master', None,
     'Address/name of the TensorFlow master to use. By default, use an '
     'in-process master.')
-
+# 模型训练目录
 flags.DEFINE_string(
     'model_dir', None,
     'Model directory for training.')
-
+# 数据集存储的目录
 flags.DEFINE_string(
     'data_dir', None,
     'Directory where dataset is stored.')
-
+# 是否使用TPU
 flags.DEFINE_bool(
     'use_tpu', True,
     'Whether to run on TPU.')
-
+# TPU名字
 flags.DEFINE_string(
     'tpu_name', None,
     'The Cloud TPU to use for training. This should be either the name '
     'used when creating the Cloud TPU, or a grpc://ip.address.of.tpu:8470 '
     'url.')
-
+# TPU的位置
 flags.DEFINE_string(
     'tpu_zone', None,
     '[Optional] GCE zone where the Cloud TPU is located in. If not '
@@ -159,27 +168,28 @@ flags.DEFINE_string(
     '[Optional] Project name for the Cloud TPU-enabled project. If not '
     'specified, we will attempt to automatically detect the GCE project from '
     'metadata.')
-
+# 使用的优化器
 flags.DEFINE_enum(
     'optimizer', 'lars', ['momentum', 'adam', 'lars'],
     'Optimizer to use.')
-
+# 
 flags.DEFINE_float(
     'momentum', 0.9,
     'Momentum parameter.')
-
+# 验证集的名字
 flags.DEFINE_string(
     'eval_name', None,
     'Name for eval.')
-
+# 要保存的检查点的最大数量
 flags.DEFINE_integer(
     'keep_checkpoint_max', 5,
     'Maximum number of checkpoints to keep.')
-
+# Hub modules是经过训练和导出的TensorFlow模型，
+# 可以作为独立的组件被加载和重用
 flags.DEFINE_integer(
     'keep_hub_module_max', 1,
     'Maximum number of Hub modules to keep.')
-
+# 比较损失的临时参数
 flags.DEFINE_float(
     'temperature', 0.1,
     'Temperature parameter for contrastive loss.')
@@ -187,19 +197,19 @@ flags.DEFINE_float(
 flags.DEFINE_boolean(
     'hidden_norm', True,
     'Temperature parameter for contrastive loss.')
-
+# 投影头定义方式
 flags.DEFINE_enum(
     'proj_head_mode', 'nonlinear', ['none', 'linear', 'nonlinear'],
     'How the head projection is done.')
-
+# 投影头的输出维度
 flags.DEFINE_integer(
     'proj_out_dim', 128,
     'Number of head projection dimension.')
-
+# 非线性头的层数
 flags.DEFINE_integer(
     'num_proj_layers', 3,
     'Number of non-linear head layers.')
-
+# 在微调时，使用哪层的投影头
 flags.DEFINE_integer(
     'ft_proj_selector', 0,
     'Which layer of the projection head to use during fine-tuning. '
@@ -208,11 +218,11 @@ flags.DEFINE_integer(
 flags.DEFINE_boolean(
     'global_bn', True,
     'Whether to aggregate BN statistics across distributed cores.')
-
+# 改变网络宽度的倍数
 flags.DEFINE_integer(
     'width_multiplier', 1,
     'Multiplier to change width of network.')
-
+# 残差网络的层数
 flags.DEFINE_integer(
     'resnet_depth', 50,
     'Depth of ResNet.')
@@ -307,6 +317,7 @@ def save(model, global_step):
 
 def try_restore_from_checkpoint(model, global_step, optimizer):
   """Restores the latest ckpt if it exists, otherwise check FLAGS.checkpoint."""
+  '''根据不同的情况尝试从检查点中恢复模型和优化器的状态'''
   checkpoint = tf.train.Checkpoint(
       model=model, global_step=global_step, optimizer=optimizer)
   checkpoint_manager = tf.train.CheckpointManager(
@@ -507,9 +518,16 @@ def main(argv):
     logging.info('Running using MirroredStrategy on %d replicas',
                  strategy.num_replicas_in_sync)
 
+#with strategy.scope():语句是为了在适当的策略作用域下构建模型。
+# 在分布式训练中，模型通常需要在每个设备或任务上进行复制，并且训
+# 练过程中的变量和操作需要在每个设备上进行同步。tf.distribute.
+# Strategy提供了这样的功能，它将模型和优化器的构建限制在作用域
+# 内，以确保模型的创建和变量的复制、同步等操作符合分布式训练的要
+# 求。
   with strategy.scope():
     model = model_lib.Model(num_classes)
-
+  # 根据FLAGS.mode的值，选择执行评估或训练逻辑。
+  # 验证
   if FLAGS.mode == 'eval':
     for ckpt in tf.train.checkpoints_iterator(
         FLAGS.model_dir, min_interval_secs=15):
@@ -518,34 +536,52 @@ def main(argv):
       if result['global_step'] >= train_steps:
         logging.info('Eval complete. Exiting...')
         return
+  # 训练
   else:
+    # 创建用于写入TensorBoard摘要的文件写入器。
     summary_writer = tf.summary.create_file_writer(FLAGS.model_dir)
     with strategy.scope():
-      # Build input pipeline.
+      # 构建分布式数据集
       ds = data_lib.build_distributed_dataset(builder, FLAGS.train_batch_size,
                                               True, strategy, topology)
 
-      # Build LR schedule and optimizer.
+      # 构建学习率衰减方案和优化器。
       learning_rate = model_lib.WarmUpAndCosineDecay(FLAGS.learning_rate,
                                                      num_train_examples)
       optimizer = model_lib.build_optimizer(learning_rate)
 
-      # Build metrics.
+      # 构建评价指标
       all_metrics = []  # For summaries.
+      # 记录权重衰减（weight decay）的指标
       weight_decay_metric = tf.keras.metrics.Mean('train/weight_decay')
+      # 记录总损失（total loss）的指标。总损失是训练过程中的总
+      # 体损失函数值，它包括了所有的损失项，例如对比损失（contr
+      # astive loss）、监督损失（supervised loss）和权重衰减。
+      # 这个指标会计算并记录每个训练步骤中的总损失，并计算它们的
+      # 平均值。
       total_loss_metric = tf.keras.metrics.Mean('train/total_loss')
       all_metrics.extend([weight_decay_metric, total_loss_metric])
+      # 预训练
       if FLAGS.train_mode == 'pretrain':
+        # 比较损失指标
         contrast_loss_metric = tf.keras.metrics.Mean('train/contrast_loss')
+        # 比较准确度指标
         contrast_acc_metric = tf.keras.metrics.Mean('train/contrast_acc')
+        # 比较交叉熵指标
         contrast_entropy_metric = tf.keras.metrics.Mean(
             'train/contrast_entropy')
+        # 汇总指标
         all_metrics.extend([
             contrast_loss_metric, contrast_acc_metric, contrast_entropy_metric
         ])
+
+      # 微调 or 线性验证  
       if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
+        # 监督损失指标
         supervised_loss_metric = tf.keras.metrics.Mean('train/supervised_loss')
+        # 监督准确度指标
         supervised_acc_metric = tf.keras.metrics.Mean('train/supervised_acc')
+        # 汇总
         all_metrics.extend([supervised_loss_metric, supervised_acc_metric])
 
       # Restore checkpoint if available.

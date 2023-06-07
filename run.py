@@ -260,13 +260,16 @@ def build_hub_module(model, num_classes, global_step, checkpoint_path):
   def module_fn(is_training):
     """Function that builds TF-Hub module."""
     endpoints = {}
+    # 占位符，接收图像
     inputs = tf.placeholder(
         tf.float32, [None, None, None, 3])
+    # 用于管理变量作用域的工具，用于命名变量，共享变量
     with tf.variable_scope('base_model', reuse=tf.AUTO_REUSE):
       hiddens = model(inputs, is_training)
       for v in ['initial_conv', 'initial_max_pool', 'block_group1',
                 'block_group2', 'block_group3', 'block_group4',
                 'final_avg_pool']:
+        # 遍历变量名，获取张量
         endpoints[v] = tf.get_default_graph().get_tensor_by_name(
             'base_model/{}:0'.format(v))
     if FLAGS.train_mode == 'pretrain':

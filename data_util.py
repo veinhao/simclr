@@ -30,7 +30,7 @@ CROP_PROPORTION = 0.875  # Standard for ImageNet.
 
 
 def random_apply(func, p, x):
-  """Randomly apply function func to x with probability p."""
+  """以概率P随机地给X使用函数FUNC."""
   return tf.cond(
       tf.less(tf.random_uniform([], minval=0, maxval=1, dtype=tf.float32),
               tf.cast(p, tf.float32)),
@@ -55,7 +55,7 @@ def to_grayscale(image, keep_channels=True):
   image = tf.image.rgb_to_grayscale(image)
   if keep_channels:
     image = tf.tile(image, [1, 1, 3])
-  return image
+  return image  
 
 
 def color_jitter(image, strength, random_order=True, impl='simclrv2'):
@@ -496,6 +496,7 @@ def preprocess_for_eval(image, height, width, crop=True):
   return image
 
 
+# 对给定的图像进行预处理
 def preprocess_image(image, height, width, is_training=False,
                      color_distort=True, test_crop=True):
   """Preprocesses the given image.

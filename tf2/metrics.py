@@ -14,6 +14,7 @@
 # limitations under the License.
 # ==============================================================================
 """Training utilities."""
+'''用于更新和记录训练过程中的指标'''
 
 from absl import logging
 
@@ -23,6 +24,9 @@ import tensorflow.compat.v2 as tf
 def update_pretrain_metrics_train(contrast_loss, contrast_acc, contrast_entropy,
                                   loss, logits_con, labels_con):
   """Updated pretraining metrics."""
+  '''update_pretrain_metrics_train函数用于更新预训练阶段的训练指标。
+  包括对比损失（contrast loss）、对比准确度（contrast accuracy）以
+  及对比熵（contrast entropy）。update_state函数用于更新对应的指标。'''
   contrast_loss.update_state(loss)
 
   contrast_acc_val = tf.equal(
@@ -40,6 +44,8 @@ def update_pretrain_metrics_eval(contrast_loss_metric,
                                  contrastive_top_1_accuracy_metric,
                                  contrastive_top_5_accuracy_metric,
                                  contrast_loss, logits_con, labels_con):
+  '''update_pretrain_metrics_eval函数用于更新预训练阶段的验证指标。
+  包括对比损失、Top-1对比准确度以及Top-5对比准确度。'''
   contrast_loss_metric.update_state(contrast_loss)
   contrastive_top_1_accuracy_metric.update_state(
       tf.argmax(labels_con, 1), tf.argmax(logits_con, axis=1))
@@ -48,6 +54,8 @@ def update_pretrain_metrics_eval(contrast_loss_metric,
 
 def update_finetune_metrics_train(supervised_loss_metric, supervised_acc_metric,
                                   loss, labels, logits):
+  '''update_finetune_metrics_train函数用于更新微调阶段的训练指标。
+  包括监督损失（supervised loss）和监督准确度（supervised accuracy）。'''
   supervised_loss_metric.update_state(loss)
 
   label_acc = tf.equal(tf.argmax(labels, 1), tf.argmax(logits, axis=1))
@@ -57,17 +65,22 @@ def update_finetune_metrics_train(supervised_loss_metric, supervised_acc_metric,
 
 def update_finetune_metrics_eval(label_top_1_accuracy_metrics,
                                  label_top_5_accuracy_metrics, outputs, labels):
+  '''update_finetune_metrics_eval函数用于更新微调阶段的验证指
+  标。包括Top-1标签准确度和Top-5标签准确度。'''
   label_top_1_accuracy_metrics.update_state(
       tf.argmax(labels, 1), tf.argmax(outputs, axis=1))
   label_top_5_accuracy_metrics.update_state(labels, outputs)
 
 
 def _float_metric_value(metric):
+  '''_float_metric_value函数用于获取Keras指标的值，并将其转换
+  为浮点数。'''
   """Gets the value of a float-value keras metric."""
   return metric.result().numpy().astype(float)
 
 
 def log_and_write_metrics_to_summary(all_metrics, global_step):
+  '''显示验证结果'''
   for metric in all_metrics:
     metric_value = _float_metric_value(metric)
     logging.info('Step: [%d] %s = %f', global_step, metric.name, metric_value)

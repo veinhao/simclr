@@ -48,8 +48,9 @@ def pad_to_batch(dataset, batch_size):
   """
   def _pad_to_batch(*args):
     """Given Tensors yielded by a Dataset, pads all to the batch size."""
+    # 将嵌套结构转为一个列表
     flat_args = tf.nest.flatten(args)
-
+    
     for tensor in flat_args:
       if tensor.shape.ndims is None:
         raise ValueError(

@@ -61,9 +61,12 @@ class BatchNormalization(tf.layers.BatchNormalization):
 
   def _cross_replica_average(self, t):
     """Calculates the average value of input tensor across TPU replicas."""
+    # 获取TPU上面的并行副本数
     num_shards = tpu_function.get_tpu_context().number_of_shards
+    # 将各个并行的副本相加
     return tf.tpu.cross_replica_sum(t) / tf.cast(num_shards, t.dtype)
 
+  # 计算输入张量的均值和方差
   def _moments(self, inputs, reduction_axes, keep_dims, mask=None):
     """Compute the mean and variance: it overrides the original _moments."""
     shard_mean, shard_variance = super(BatchNormalization, self)._moments(
@@ -85,6 +88,7 @@ class BatchNormalization(tf.layers.BatchNormalization):
       return (shard_mean, shard_variance)
 
 
+# 执行批量归一化（batch normalization）后的 ReLU 操作
 def batch_norm_relu(inputs, is_training, relu=True, init_zero=False,
                     center=True, scale=True, data_format='channels_last'):
   """Performs a batch normalization followed by a ReLU.
@@ -140,6 +144,7 @@ def batch_norm_relu(inputs, is_training, relu=True, init_zero=False,
   return inputs
 
 
+# 应用 DropBlock 正则化方法到卷积神经网络中。
 def dropblock(net, is_training, keep_prob, dropblock_size,
               data_format='channels_last'):
   """DropBlock: a regularization method for convolutional neural networks.
@@ -221,6 +226,7 @@ def dropblock(net, is_training, keep_prob, dropblock_size,
   return net
 
 
+# 在空间维度上独立于输入尺寸对输入进行填充。
 def fixed_padding(inputs, kernel_size, data_format='channels_last'):
   """Pads the input along the spatial dimensions independently of input size.
 
@@ -249,6 +255,7 @@ def fixed_padding(inputs, kernel_size, data_format='channels_last'):
   return padded_inputs
 
 
+# 进行带有显式填充的步幅为2的二维卷积操作。
 def conv2d_fixed_padding(inputs, filters, kernel_size, strides,
                          data_format='channels_last'):
   """Strided 2-D convolution with explicit padding.
@@ -277,6 +284,7 @@ def conv2d_fixed_padding(inputs, filters, kernel_size, strides,
       data_format=data_format)
 
 
+# 实现了一种选择性核卷积层
 def sk_conv2d(inputs, filters, strides, sk_ratio, min_dim=32,
               is_training=True, data_format='channels_last'):
   """Selective kernel convolutional layer (https://arxiv.org/abs/1903.06586)."""
@@ -310,6 +318,7 @@ def sk_conv2d(inputs, filters, strides, sk_ratio, min_dim=32,
   return tf.reduce_sum(inputs * mixing, axis=0)
 
 
+# Squeeze and Excitation (SE)层是一种注意力机制，用于增强卷积神经网络的表示能力
 def se_layer(inputs, filters, se_ratio, data_format='channels_last'):
   """Squeeze and Excitation layer (https://arxiv.org/abs/1709.01507)."""
   if se_ratio <= 0:

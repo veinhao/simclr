@@ -48,7 +48,7 @@ def build_model_fn(model, num_classes, num_train_examples):
       num_transforms = 1
     else:
       raise ValueError('Unknown train_mode {}'.format(FLAGS.train_mode))
-
+    
     # Split channels, and optionally apply extra batched augmentation.
     features_list = tf.split(
         features, num_or_size_splits=num_transforms, axis=-1)
@@ -68,20 +68,25 @@ def build_model_fn(model, num_classes, num_train_examples):
       hiddens = model(features, is_training=model_train_mode)
 
     # Add head and loss.
+    # 预训练
     if FLAGS.train_mode == 'pretrain':
       tpu_context = params['context'] if 'context' in params else None
+      # 投影头
       hiddens_proj = model_util.projection_head(hiddens, is_training)
+      # 损失函数
       contrast_loss, logits_con, labels_con = obj_lib.add_contrastive_loss(
           hiddens_proj,
           hidden_norm=FLAGS.hidden_norm,
           temperature=FLAGS.temperature,
           tpu_context=tpu_context if is_training else None)
       logits_sup = tf.zeros([params['batch_size'], num_classes])
+    # 微调  
     else:
       contrast_loss = tf.zeros([])
       logits_con = tf.zeros([params['batch_size'], 10])
       labels_con = tf.zeros([params['batch_size'], 10])
       hiddens = model_util.projection_head(hiddens, is_training)
+      # 下游任务的输出
       logits_sup = model_util.supervised_head(
           hiddens, num_classes, is_training)
       obj_lib.add_supervised_loss(
@@ -89,10 +94,12 @@ def build_model_fn(model, num_classes, num_train_examples):
           logits=logits_sup,
           weights=labels['mask'])
 
+    # on-LARS optimizers的损失函数的权重衰减
     # Add weight decay to loss, for non-LARS optimizers.
     model_util.add_weight_decay(adjust_per_optimizer=True)
+    # 得到损失
     loss = tf.losses.get_total_loss()
-
+    
     if FLAGS.train_mode == 'pretrain':
       variables_to_train = tf.trainable_variables()
     else:
